@@ -1,377 +1,749 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Clockosoft — Employee ID Card Information Form</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Clockosoft — Employee ID Card Form</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f0f4f8;
-    min-height: 100vh;
-    padding: 30px 16px 60px;
-  }
-  .form-wrapper { max-width: 680px; margin: 0 auto; }
+/* ── Root ── */
+:root{
+  --c1:#7c3aed; --c2:#2563eb; --c3:#06b6d4;
+  --pink:#ec4899; --gold:#f59e0b; --green:#059669; --red:#ef4444;
+  --bg:#f0f2ff;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#1e293b; --muted:#64748b;
+  --radius:18px;
+  --shadow:0 4px 32px rgba(124,58,237,.10),0 1px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 16px 64px rgba(124,58,237,.18),0 4px 16px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+}
 
-  /* Header card */
-  .form-header {
-    background: linear-gradient(135deg, #1F3864 0%, #2E75B6 100%);
-    border-radius: 12px 12px 0 0;
-    padding: 28px 28px 24px;
-    color: #fff;
-  }
-  .form-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .form-header p { font-size: 14px; opacity: 0.88; line-height: 1.5; }
-  .form-header .badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.35);
-    border-radius: 20px;
-    font-size: 12px;
-    padding: 3px 12px;
-    margin-top: 10px;
-  }
+/* ── Canvas bg ── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.18}
 
-  /* Section cards */
-  .section {
-    background: #fff;
-    border-left: 4px solid #2E75B6;
-    border-radius: 0;
-    padding: 22px 28px;
-    margin-top: 16px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-  }
-  .section:first-of-type { border-radius: 0; margin-top: 0; }
-  .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #2E75B6;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e2e8f0;
-  }
+/* ── Floating orbs (light) ── */
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.orb1{width:550px;height:550px;background:radial-gradient(circle,rgba(124,58,237,.25),transparent 70%);top:-200px;left:-180px;animation:orbFloat 10s ease-in-out infinite}
+.orb2{width:420px;height:420px;background:radial-gradient(circle,rgba(6,182,212,.2),transparent 70%);bottom:-140px;right:-140px;animation:orbFloat 10s ease-in-out infinite;animation-delay:-4s}
+.orb3{width:320px;height:320px;background:radial-gradient(circle,rgba(236,72,153,.18),transparent 70%);top:45%;left:55%;animation:orbFloat 8s ease-in-out infinite;animation-delay:-6s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0)}40%{transform:translate(28px,-36px)}70%{transform:translate(-18px,22px)}}
 
-  /* Fields */
-  .field { margin-bottom: 18px; }
-  .field:last-child { margin-bottom: 0; }
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 6px;
-  }
-  label .required { color: #e53e3e; margin-left: 2px; }
-  label .hint { font-weight: 400; color: #6b7280; font-size: 11px; margin-left: 6px; }
-  input[type="text"],
-  input[type="tel"],
-  input[type="email"],
-  input[type="date"],
-  select,
-  textarea {
-    width: 100%;
-    border: 1.5px solid #d1d5db;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 14px;
-    color: #111827;
-    background: #fafafa;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: #2E75B6;
-    box-shadow: 0 0 0 3px rgba(46,117,182,0.12);
-    background: #fff;
-  }
-  textarea { resize: vertical; min-height: 80px; }
-  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+/* ── Page ── */
+.page{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:40px 16px 80px}
 
-  /* Two-column grid */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 520px) { .grid-2 { grid-template-columns: 1fr; } }
+/* ── Hero ── */
+.hero{
+  text-align:center;padding:52px 32px 42px;
+  background:linear-gradient(135deg,#fff 0%,#f5f0ff 50%,#eff8ff 100%);
+  border:1.5px solid rgba(124,58,237,.15);
+  border-bottom:none;
+  border-radius:var(--radius) var(--radius) 0 0;
+  box-shadow:var(--shadow-lg);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(124,58,237,.08) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 90%,rgba(6,182,212,.07) 0%,transparent 50%);
+}
+.hero-sparkle{
+  position:absolute;top:16px;right:24px;font-size:1.4rem;
+  animation:spin 4s linear infinite;opacity:.6;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero-logo{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:1.9rem;font-weight:900;letter-spacing:4px;
+  background:linear-gradient(90deg,#7c3aed,#2563eb,#06b6d4,#ec4899,#7c3aed);
+  background-size:300% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:gradShift 4s linear infinite;position:relative;z-index:1;
+}
+@keyframes gradShift{to{background-position:300% center}}
 
-  /* Photo upload */
-  .photo-upload {
-    border: 2px dashed #cbd5e1;
-    border-radius: 10px;
-    padding: 24px;
-    text-align: center;
-    background: #f8fafc;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-  .photo-upload:hover { border-color: #2E75B6; }
-  .photo-upload input { display: none; }
-  .photo-upload .icon { font-size: 32px; margin-bottom: 8px; }
-  .photo-upload p { font-size: 13px; color: #6b7280; }
-  .photo-upload span { font-size: 12px; color: #9ca3af; }
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(37,99,235,.08));
+  border:1.5px solid rgba(124,58,237,.2);
+  color:var(--c1);font-size:.72rem;font-weight:800;letter-spacing:2px;
+  padding:5px 16px;border-radius:99px;margin:14px 0;
+  position:relative;z-index:1;
+  animation:badgePulse 2.5s ease-in-out infinite;
+}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.2)}50%{box-shadow:0 0 0 8px rgba(124,58,237,0)}}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--c1);animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
 
-  /* Submit */
-  .submit-card {
-    background: #fff;
-    padding: 24px 28px;
-    text-align: center;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    margin-top: 16px;
-  }
-  .submit-btn {
-    background: linear-gradient(135deg, #1F3864, #2E75B6);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 13px 48px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    letter-spacing: 0.3px;
-  }
-  .submit-btn:hover { opacity: 0.92; transform: translateY(-1px); }
-  .submit-note { font-size: 12px; color: #9ca3af; margin-top: 10px; }
+.hero h1{
+  font-size:1.9rem;font-weight:800;line-height:1.25;
+  color:var(--text);margin-bottom:10px;
+  position:relative;z-index:1;
+}
+.hero h1 .grad{
+  background:linear-gradient(90deg,var(--c1),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{font-size:.9rem;color:var(--muted);position:relative;z-index:1;line-height:1.6}
 
-  /* Success message */
-  .success-msg {
-    display: none;
-    background: #d1fae5;
-    border: 1.5px solid #6ee7b7;
-    border-radius: 10px;
-    padding: 18px 20px;
-    color: #065f46;
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 16px;
-    text-align: center;
-  }
+/* ── Wizard ── */
+.wizard{
+  display:flex;align-items:center;
+  background:#fff;border:1.5px solid rgba(124,58,237,.12);border-top:none;
+  padding:18px 28px;overflow-x:auto;gap:0;
+  box-shadow:0 2px 12px rgba(124,58,237,.06);
+}
+.wizard::-webkit-scrollbar{height:0}
+.step{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;color:#94a3b8;white-space:nowrap;transition:color .35s}
+.step.active{color:var(--c1)}
+.step.done{color:var(--green)}
+.step-num{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:800;flex-shrink:0;
+  border:2px solid #e2e8f0;background:#f8fafc;
+  transition:all .35s;color:#94a3b8;
+}
+.step.active .step-num{
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  border-color:transparent;color:#fff;
+  box-shadow:0 4px 16px rgba(124,58,237,.4);
+  animation:stepPop .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes stepPop{from{transform:scale(.7)}to{transform:scale(1)}}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 4px 12px rgba(5,150,105,.3)}
+.step-line{flex:1;min-width:12px;height:2px;margin:0 6px;border-radius:99px;background:#e2e8f0;position:relative;overflow:hidden}
+.step-line::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,var(--c1),var(--c3));transform:scaleX(0);transform-origin:left;transition:transform .5s ease}
+.step.done + .step-line::after{transform:scaleX(1)}
 
-  /* Tooltip */
-  .highlight-field input, .highlight-field select { border-color: #F4B942; background: #fffbeb; }
+/* ── Progress ── */
+.progress-bar{
+  background:#fff;border:1.5px solid rgba(124,58,237,.12);border-top:none;
+  padding:14px 28px 18px;
+  box-shadow:0 2px 8px rgba(124,58,237,.05);
+}
+.progress-track{height:8px;background:#f1f5f9;border-radius:99px;overflow:hidden;position:relative}
+.progress-fill{
+  height:100%;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,var(--c1),var(--pink),var(--c3));
+  background-size:200% auto;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+  animation:shimmer 2.5s linear infinite;
+}
+@keyframes shimmer{to{background-position:200% center}}
+.progress-fill::after{
+  content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;border-radius:50%;background:#fff;
+  border:3px solid var(--c1);box-shadow:0 0 8px rgba(124,58,237,.5);
+  transition:opacity .3s;
+}
+.progress-meta{display:flex;justify-content:space-between;margin-top:8px;font-size:.73rem;color:var(--muted)}
+.progress-pct{font-weight:800;
+  background:linear-gradient(90deg,var(--c1),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* ── Card ── */
+.card{
+  background:var(--card);
+  border:1.5px solid rgba(124,58,237,.1);border-top:none;
+  box-shadow:var(--shadow-lg);
+}
+.card-inner{padding:44px 40px 36px}
+@media(max-width:580px){.card-inner{padding:28px 18px 28px}}
+
+/* ── Section ── */
+.section{
+  margin-bottom:42px;
+  opacity:0;transform:translateY(24px);
+  transition:opacity .55s ease,transform .55s ease;
+}
+.section.visible{opacity:1;transform:translateY(0)}
+.sec-header{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:24px;padding-bottom:16px;
+  border-bottom:2px solid #f1f5f9;
+  position:relative;
+}
+.sec-header::after{
+  content:'';position:absolute;bottom:-2px;left:0;width:60px;height:2px;
+  background:linear-gradient(90deg,var(--c1),var(--c3));
+  border-radius:99px;animation:lineGrow .6s ease forwards;
+  transform-origin:left;
+}
+@keyframes lineGrow{from{width:0}to{width:60px}}
+.sec-icon{
+  width:46px;height:46px;border-radius:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.35rem;
+  background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(37,99,235,.08));
+  border:1.5px solid rgba(124,58,237,.18);
+  box-shadow:0 4px 16px rgba(124,58,237,.12);
+  transition:transform .3s,box-shadow .3s;
+}
+.sec-icon:hover{transform:scale(1.1) rotate(-5deg);box-shadow:0 8px 24px rgba(124,58,237,.22)}
+.sec-title{font-size:1.05rem;font-weight:800;color:var(--text)}
+.sec-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
+
+/* ── Grid ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+@media(max-width:580px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── Floating label ── */
+.fl{position:relative;margin-bottom:2px}
+.fl label{
+  position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  font-size:.88rem;font-weight:600;color:var(--muted);
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;padding:0 4px;z-index:2;
+  background:transparent;
+}
+.fl.has-val label,.fl input:focus ~ label,.fl select:focus ~ label,.fl textarea:focus ~ label{
+  top:0;font-size:.68rem;font-weight:700;color:var(--c1);
+  background:#fff;
+}
+/* Date inputs always show browser placeholder — keep label floated */
+.fl input[type="date"] ~ label{
+  top:0;font-size:.68rem;font-weight:700;background:#fff;
+}
+.fl textarea ~ label{top:16px;transform:none}
+.fl.has-val textarea ~ label,.fl textarea:focus ~ label{top:-10px;background:#fff}
+
+.fl input,.fl select,.fl textarea{
+  width:100%;height:52px;
+  background:#fafbff;border:2px solid var(--border);
+  border-radius:12px;padding:16px 16px 6px;
+  color:var(--text);font-size:.92rem;font-family:inherit;
+  outline:none;transition:all .25s;appearance:none;
+}
+.fl textarea{height:auto;min-height:96px;padding-top:22px;resize:vertical}
+.fl select{cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 16px center;padding-right:42px;
+  background-color:#fafbff;
+}
+.fl input:focus,.fl select:focus,.fl textarea:focus{
+  border-color:var(--c1);background:#fdf9ff;
+  box-shadow:0 0 0 4px rgba(124,58,237,.1),0 4px 20px rgba(124,58,237,.08);
+}
+.fl input.gold-focus:focus{
+  border-color:var(--gold);background:#fffdf5;
+  box-shadow:0 0 0 4px rgba(245,158,11,.12),0 4px 20px rgba(245,158,11,.08);
+}
+.fl input.gold-focus:focus ~ label{color:var(--gold)}
+.req{color:var(--pink);margin-left:2px}
+
+/* ── Divider ── */
+.divider{
+  height:1px;margin:36px 0;
+  background:linear-gradient(90deg,transparent,rgba(124,58,237,.2),rgba(6,182,212,.15),transparent);
+}
+
+/* ── Photo upload ── */
+.photo-drop{
+  border:2.5px dashed rgba(124,58,237,.25);border-radius:18px;
+  padding:36px 24px;text-align:center;position:relative;cursor:pointer;
+  background:linear-gradient(135deg,rgba(124,58,237,.03),rgba(6,182,212,.02));
+  transition:all .3s;overflow:hidden;
+}
+.photo-drop::before{
+  content:'';position:absolute;inset:0;
+  background:conic-gradient(from 0deg,transparent 0deg,rgba(124,58,237,.08) 90deg,transparent 180deg,rgba(6,182,212,.06) 270deg,transparent 360deg);
+  animation:rotateBorder 5s linear infinite;
+  opacity:0;transition:opacity .3s;
+}
+.photo-drop:hover::before,.photo-drop.dragover::before{opacity:1}
+@keyframes rotateBorder{to{transform:rotate(360deg) scale(2)}}
+.photo-drop:hover{border-color:rgba(124,58,237,.5);background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(6,182,212,.04));box-shadow:0 8px 32px rgba(124,58,237,.12)}
+.photo-drop.dragover{border-color:var(--c1);background:rgba(124,58,237,.07);box-shadow:0 0 0 4px rgba(124,58,237,.12)}
+.photo-drop.has-photo{border-style:solid;border-color:var(--green);background:linear-gradient(135deg,rgba(5,150,105,.05),rgba(16,185,129,.03))}
+.photo-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-preview{
+  width:100px;height:120px;object-fit:cover;display:none;
+  border-radius:12px;margin:0 auto 14px;
+  border:3px solid var(--c1);
+  box-shadow:0 8px 32px rgba(124,58,237,.25),0 0 0 6px rgba(124,58,237,.08);
+  animation:photoReveal .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes photoReveal{from{opacity:0;transform:scale(.6) rotateY(25deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
+.photo-icon-wrap{font-size:3rem;margin-bottom:10px;transition:transform .3s}
+.photo-drop:hover .photo-icon-wrap{transform:scale(1.15) rotate(-8deg)}
+.photo-title{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.photo-sub{font-size:.75rem;color:var(--muted)}
+.photo-progress{display:none;margin-top:14px;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.photo-progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--green),#34d399);transition:width .5s ease}
+
+/* ── Submit footer ── */
+.submit-footer{
+  background:linear-gradient(135deg,#f5f0ff,#eff8ff,#fdf0ff);
+  border:1.5px solid rgba(124,58,237,.12);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);
+  padding:36px 40px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(124,58,237,.1);
+}
+.submit-footer::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:300px;height:120px;
+  background:radial-gradient(ellipse,rgba(124,58,237,.12),transparent 70%);
+  pointer-events:none;
+}
+.submit-btn{
+  position:relative;z-index:1;
+  background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3));
+  background-size:200% auto;
+  color:#fff;border:none;border-radius:14px;
+  padding:18px 64px;font-size:1.05rem;font-weight:800;
+  cursor:pointer;letter-spacing:.5px;overflow:hidden;
+  box-shadow:0 8px 28px rgba(124,58,237,.35),0 2px 8px rgba(37,99,235,.2);
+  transition:transform .25s,box-shadow .25s;
+  animation:btnShift 4s linear infinite;
+}
+@keyframes btnShift{to{background-position:200% center}}
+.submit-btn::after{
+  content:'';position:absolute;inset:-1px;border-radius:15px;
+  background:linear-gradient(135deg,#a78bfa,#60a5fa,#34d399);
+  z-index:-1;filter:blur(10px);opacity:0;transition:opacity .3s;background-size:200% auto;animation:btnShift 4s linear infinite;
+}
+.submit-btn:hover:not(:disabled){transform:translateY(-3px) scale(1.02);box-shadow:0 16px 48px rgba(124,58,237,.4),0 4px 16px rgba(37,99,235,.2)}
+.submit-btn:hover:not(:disabled)::after{opacity:.6}
+.submit-btn:active:not(:disabled){transform:translateY(0) scale(.98)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;animation:none}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rippleAnim .65s linear;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+.submit-note{font-size:.75rem;color:var(--muted);margin-top:12px;position:relative;z-index:1}
+
+/* ── Success screen ── */
+#successScreen{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:linear-gradient(135deg,#f5f0ff,#eff8ff,#fff0f9);
+  align-items:center;justify-content:center;padding:32px;
+}
+#successScreen.show{display:flex}
+.success-card{
+  background:#fff;border:1.5px solid rgba(124,58,237,.2);
+  border-radius:24px;padding:56px 48px;max-width:480px;width:100%;text-align:center;
+  box-shadow:0 24px 80px rgba(124,58,237,.2),0 8px 24px rgba(0,0,0,.08);
+  animation:successPop .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes successPop{from{opacity:0;transform:scale(.7) translateY(40px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.success-emoji{font-size:5rem;display:block;margin-bottom:18px;animation:bounce 1.2s ease-in-out infinite alternate}
+@keyframes bounce{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-14px) rotate(6deg)}}
+.success-title{
+  font-size:2rem;font-weight:900;margin-bottom:12px;
+  background:linear-gradient(90deg,var(--c1),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.success-sub{font-size:.95rem;color:var(--muted);line-height:1.8}
+.success-badge{
+  display:inline-block;margin-top:20px;
+  background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(5,150,105,.08));
+  border:1.5px solid rgba(124,58,237,.2);
+  color:var(--c1);font-size:.8rem;font-weight:700;
+  padding:8px 20px;border-radius:99px;
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:888;
+  background:#fff;border:1.5px solid rgba(124,58,237,.2);
+  color:var(--text);font-size:.85rem;font-weight:600;
+  padding:13px 20px;border-radius:14px;
+  box-shadow:0 8px 32px rgba(124,58,237,.15);
+  transform:translateY(80px);opacity:0;
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
+  display:flex;align-items:center;gap:8px;max-width:300px;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{border-color:rgba(239,68,68,.3);color:var(--red)}
+
+/* ── Scroll reveal ── */
+[data-reveal]{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+[data-reveal].revealed{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
-<div class="form-wrapper">
 
-  <!-- Header -->
-  <div class="form-header">
-    <h1>🪪 Employee ID Card Information</h1>
-    <p>Please fill in your details accurately. This information will be used to create your official Clockosoft ID card.</p>
-    <div class="badge">🔒 Confidential — Clockosoft Internal Use Only</div>
+<canvas id="bgCanvas"></canvas>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<canvas id="confettiCanvas" style="position:fixed;inset:0;z-index:998;pointer-events:none"></canvas>
+<div class="toast" id="toast"></div>
+
+<!-- Success -->
+<div id="successScreen">
+  <div class="success-card">
+    <span class="success-emoji">🎉</span>
+    <div class="success-title">Submitted!</div>
+    <div class="success-sub">
+      Your information has been received.<br/>
+      HR will process your <strong style="color:var(--c1)">Clockosoft ID Card</strong><br/>
+      within <strong style="color:var(--green)">3–5 working days</strong>.
+    </div>
+    <div class="success-badge">✅ Clockosoft HR Team notified</div>
   </div>
-
-  <form id="idCardForm" onsubmit="handleSubmit(event)">
-
-    <!-- Personal Information -->
-    <div class="section">
-      <div class="section-title">👤 Personal Information</div>
-
-      <div class="field">
-        <label>Full Name <span class="required">*</span></label>
-        <input type="text" name="full_name" placeholder="e.g. Md. Rabiul Islam" required />
-      </div>
-
-      <div class="grid-2">
-        <div class="field">
-          <label>Date of Birth <span class="required">*</span></label>
-          <input type="date" name="dob" required />
-        </div>
-        <div class="field">
-          <label>Blood Group <span class="required">*</span></label>
-          <select name="blood_group" required>
-            <option value="">Select</option>
-            <option>A+</option><option>A-</option>
-            <option>B+</option><option>B-</option>
-            <option>AB+</option><option>AB-</option>
-            <option>O+</option><option>O-</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>National ID / NID Number <span class="required">*</span></label>
-        <input type="text" name="nid" placeholder="Enter your NID number" required />
-      </div>
-
-      <div class="field">
-        <label>Permanent Address <span class="required">*</span></label>
-        <textarea name="address" placeholder="House, Road, Area, District" required></textarea>
-      </div>
-    </div>
-
-    <!-- Contact Details -->
-    <div class="section" style="border-left-color: #F4B942;">
-      <div class="section-title" style="color:#b45309;">📞 Contact Details</div>
-
-      <div class="field highlight-field">
-        <label>Primary Contact Number <span class="required">*</span> <span class="hint">— for ID card</span></label>
-        <input type="tel" name="contact_primary" placeholder="e.g. 01XXXXXXXXX" maxlength="11" required />
-      </div>
-
-      <div class="field">
-        <label>Alternative Contact Number</label>
-        <input type="tel" name="contact_alt" placeholder="e.g. 01XXXXXXXXX" maxlength="11" />
-      </div>
-
-      <div class="field">
-        <label>Official Email Address <span class="required">*</span></label>
-        <input type="email" name="email" placeholder="yourname@clockosoft.com" required />
-      </div>
-
-      <div class="field">
-        <label>Personal Email Address</label>
-        <input type="email" name="personal_email" placeholder="your.personal@gmail.com" />
-      </div>
-    </div>
-
-    <!-- Emergency Contact -->
-    <div class="section" style="border-left-color: #e53e3e;">
-      <div class="section-title" style="color:#c53030;">🚨 Emergency Contact</div>
-
-      <div class="grid-2">
-        <div class="field">
-          <label>Emergency Contact Name <span class="required">*</span></label>
-          <input type="text" name="emergency_name" placeholder="Full name" required />
-        </div>
-        <div class="field">
-          <label>Relationship <span class="required">*</span></label>
-          <select name="emergency_relation" required>
-            <option value="">Select</option>
-            <option>Father</option><option>Mother</option>
-            <option>Spouse</option><option>Sibling</option>
-            <option>Friend</option><option>Other</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Emergency Contact Number <span class="required">*</span></label>
-        <input type="tel" name="emergency_contact" placeholder="e.g. 01XXXXXXXXX" maxlength="11" required />
-      </div>
-    </div>
-
-    <!-- Employment Info -->
-    <div class="section" style="border-left-color: #22c55e;">
-      <div class="section-title" style="color:#15803d;">🏢 Employment Information</div>
-
-      <div class="grid-2">
-        <div class="field">
-          <label>Designation / Job Title <span class="required">*</span></label>
-          <input type="text" name="designation" placeholder="e.g. Software Engineer" required />
-        </div>
-        <div class="field">
-          <label>Department <span class="required">*</span></label>
-          <select name="department" required>
-            <option value="">Select</option>
-            <option>Engineering</option>
-            <option>Design</option>
-            <option>Product</option>
-            <option>Marketing</option>
-            <option>Operations</option>
-            <option>HR & Admin</option>
-            <option>Finance</option>
-            <option>Other</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Date of Joining <span class="required">*</span></label>
-        <input type="date" name="joining_date" required />
-      </div>
-    </div>
-
-    <!-- Photo Upload -->
-    <div class="section">
-      <div class="section-title">📷 Profile Photo</div>
-      <div class="field">
-        <label>Upload Your Photo <span class="required">*</span> <span class="hint">JPEG/PNG, max 2MB, passport-size preferred</span></label>
-        <label class="photo-upload" for="photoInput">
-          <input type="file" id="photoInput" name="photo" accept="image/jpeg,image/png" onchange="showFileName(this)" />
-          <div class="icon">📸</div>
-          <p id="photoLabel">Click to upload your photo</p>
-          <span>Passport-size, clear background preferred</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Submit -->
-    <div class="submit-card">
-      <button type="submit" class="submit-btn">✅ Submit My Information</button>
-      <p class="submit-note">By submitting, you confirm all information provided is accurate.</p>
-    </div>
-
-  </form>
-
-  <div class="success-msg" id="successMsg">
-    🎉 Thank you! Your information has been submitted successfully.<br/>
-    HR will process your ID card within 3–5 working days.
-  </div>
-
 </div>
 
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero" data-reveal>
+    <div class="hero-sparkle">✦</div>
+    <div class="hero-logo">⏱ CLOCKOSOFT</div>
+    <div class="hero-badge"><span class="badge-dot"></span> EMPLOYEE PORTAL</div>
+    <h1>ID Card Information<br/><span class="grad">Collection Form</span></h1>
+    <p>Fill in your details carefully — this data will be used to issue your official Clockosoft ID card.</p>
+  </div>
+
+  <!-- Step wizard -->
+  <div class="wizard" data-reveal>
+    <div class="step active" id="ws1"><div class="step-num">1</div>Personal</div>
+    <div class="step-line"></div>
+    <div class="step" id="ws2"><div class="step-num">2</div>Contact</div>
+    <div class="step-line"></div>
+    <div class="step" id="ws3"><div class="step-num">3</div>Emergency</div>
+    <div class="step-line"></div>
+    <div class="step" id="ws4"><div class="step-num">4</div>Employment</div>
+    <div class="step-line"></div>
+    <div class="step" id="ws5"><div class="step-num">5</div>Photo</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar" data-reveal>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="progressText">Fill in the required fields below</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+  <form id="idCardForm" onsubmit="handleSubmit(event)" novalidate>
+  <div class="card-inner">
+
+    <!-- 1. Personal -->
+    <div class="section" id="sec1" data-reveal>
+      <div class="sec-header">
+        <div class="sec-icon">👤</div>
+        <div><div class="sec-title">Personal Information</div><div class="sec-sub">Your basic identity details</div></div>
+      </div>
+      <div class="g2">
+        <div class="fl" data-fl>
+          <input type="text" name="full_name" required autocomplete="name" oninput="checkFl(this)"/>
+          <label>Full Name <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="date" name="dob" required onchange="checkFl(this)"/>
+          <label>Date of Birth <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <select name="blood_group" required onchange="checkFl(this)">
+            <option value=""></option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+          </select>
+          <label>Blood Group <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="text" name="nid" required oninput="checkFl(this)"/>
+          <label>NID / Birth Cert No. <span class="req">*</span></label>
+        </div>
+      </div>
+      <div class="fl" data-fl style="margin-top:20px">
+        <textarea name="address" required rows="3" oninput="checkFl(this)"></textarea>
+        <label>Permanent Address <span class="req">*</span></label>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 2. Contact -->
+    <div class="section" id="sec2" data-reveal>
+      <div class="sec-header">
+        <div class="sec-icon">📞</div>
+        <div><div class="sec-title">Contact Details</div><div class="sec-sub">How we can reach you</div></div>
+      </div>
+      <div class="g2">
+        <div class="fl" data-fl>
+          <input type="tel" name="contact_primary" class="gold-focus" required oninput="checkFl(this)"/>
+          <label>Primary Number ⭐ <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="tel" name="contact_alt" oninput="checkFl(this)"/>
+          <label>Alternative Number</label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="email" name="email" required oninput="checkFl(this)"/>
+          <label>Official Email <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="email" name="personal_email" oninput="checkFl(this)"/>
+          <label>Personal Email</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 3. Emergency -->
+    <div class="section" id="sec3" data-reveal>
+      <div class="sec-header">
+        <div class="sec-icon">🚨</div>
+        <div><div class="sec-title">Emergency Contact</div><div class="sec-sub">Who to contact in an emergency</div></div>
+      </div>
+      <div class="g3">
+        <div class="fl" data-fl>
+          <input type="text" name="emergency_name" required oninput="checkFl(this)"/>
+          <label>Full Name <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="text" name="emergency_relation" required oninput="checkFl(this)"/>
+          <label>Relationship <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="tel" name="emergency_contact" required oninput="checkFl(this)"/>
+          <label>Contact Number <span class="req">*</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 4. Employment -->
+    <div class="section" id="sec4" data-reveal>
+      <div class="sec-header">
+        <div class="sec-icon">🏢</div>
+        <div><div class="sec-title">Employment Information</div><div class="sec-sub">Your role at Clockosoft</div></div>
+      </div>
+      <div class="g3">
+        <div class="fl" data-fl>
+          <input type="text" name="designation" required oninput="checkFl(this)"/>
+          <label>Designation <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <select name="department" required onchange="checkFl(this)">
+            <option value=""></option>
+            <option>Engineering</option><option>Product</option><option>Design</option>
+            <option>Marketing</option><option>Sales</option>
+            <option>HR &amp; Admin</option><option>Finance</option><option>Other</option>
+          </select>
+          <label>Department <span class="req">*</span></label>
+        </div>
+        <div class="fl" data-fl>
+          <input type="date" name="joining_date" required onchange="checkFl(this)"/>
+          <label>Date of Joining <span class="req">*</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 5. Photo -->
+    <div class="section" id="sec5" data-reveal>
+      <div class="sec-header">
+        <div class="sec-icon">📷</div>
+        <div><div class="sec-title">Profile Photo</div><div class="sec-sub">Passport-size · clear background · JPEG/PNG · max 2 MB</div></div>
+      </div>
+      <div class="photo-drop" id="photoZone"
+           ondragover="photoDragOver(event)" ondragleave="photoDragLeave()" ondrop="photoDrop(event)">
+        <input type="file" id="photoInput" accept="image/jpeg,image/png" onchange="handlePhotoSelect(this.files[0])"/>
+        <img id="photoPreview" class="photo-preview" alt="Preview"/>
+        <div class="photo-icon-wrap" id="photoIcon">📸</div>
+        <div class="photo-title" id="photoLabel">Click or drag your photo here</div>
+        <div class="photo-sub">Auto-compressed · passport-size preferred</div>
+        <div class="photo-progress" id="photoProgress">
+          <div class="photo-progress-fill" id="photoProgressFill"></div>
+        </div>
+      </div>
+      <input type="hidden" id="photoBase64" name="photo_base64"/>
+      <input type="hidden" id="photoMime"   name="photo_mime"/>
+    </div>
+
+  </div><!-- card-inner -->
+
+  <!-- Footer -->
+  <div class="submit-footer" data-reveal>
+    <button type="submit" class="submit-btn" id="submitBtn" onclick="createRipple(event)">
+      ✨ &nbsp;Submit My Information
+    </button>
+    <p class="submit-note">By submitting you confirm all information provided is accurate and complete.</p>
+  </div>
+
+  </form>
+  </div><!-- card -->
+</div><!-- page -->
+
 <script>
-  function showFileName(input) {
-    const label = document.getElementById('photoLabel');
-    if (input.files && input.files[0]) {
-      label.textContent = '✅ ' + input.files[0].name;
-      label.style.color = '#065f46';
+const APPS_SCRIPT_URL = '%%APPS_SCRIPT_URL%%';
+
+/* ── Particle canvas (light) ── */
+(function(){
+  const cv = document.getElementById('bgCanvas'), ctx = cv.getContext('2d');
+  let W, H, pts = [];
+  const COLS = ['#7c3aed','#2563eb','#06b6d4','#ec4899','#f59e0b'];
+  function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
+  function mkPt(){ return {x:Math.random()*W,y:Math.random()*H,r:Math.random()*2.5+1,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,c:COLS[0|Math.random()*COLS.length],a:Math.random()*.5+.15} }
+  function go(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.c; ctx.globalAlpha=p.a; ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.sqrt(dx*dx+dy*dy);
+      if(d<90){ ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle=pts[i].c; ctx.globalAlpha=(1-d/90)*.12; ctx.lineWidth=.7; ctx.stroke(); }
     }
+    ctx.globalAlpha=1; requestAnimationFrame(go);
   }
+  resize(); pts=Array.from({length:100},mkPt); go();
+  addEventListener('resize',resize);
+})();
 
-  // ✅ Paste your deployed Apps Script Web App URL here
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtlgEeYKnkVFxamLlfQ3deBhGTGB9ZrDAbgG9sqtL9wXoxQvotKyZyg3QQx-rKdb79Hw/exec';
+/* ── Scroll reveal ── */
+(function(){
+  const io = new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');io.unobserve(e.target)}}),{threshold:.08});
+  document.querySelectorAll('[data-reveal]').forEach(el=>io.observe(el));
+  const sio = new IntersectionObserver(es=>es.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*60);sio.unobserve(e.target)}}),{threshold:.06});
+  document.querySelectorAll('.section').forEach(s=>sio.observe(s));
+})();
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const form = document.getElementById('idCardForm');
-    const btn  = form.querySelector('.submit-btn');
-    const data = new FormData(form);
-    const entries = {};
-    for (let [k, v] of data.entries()) {
-      if (k !== 'photo') entries[k] = v;
-    }
+/* ── Floating labels ── */
+function checkFl(el){ const w=el.closest('[data-fl]'); if(w) w.classList.toggle('has-val',!!el.value); }
+document.querySelectorAll('[data-fl] input,[data-fl] select,[data-fl] textarea').forEach(el=>{
+  el.addEventListener('input',()=>checkFl(el));
+  el.addEventListener('change',()=>checkFl(el));
+  if(el.value) checkFl(el);
+});
 
-    // UI — loading state
-    btn.disabled = true;
-    btn.textContent = '⏳ Submitting...';
+/* ── Progress + steps ── */
+const SECSW = [{s:'sec1',w:'ws1'},{s:'sec2',w:'ws2'},{s:'sec3',w:'ws3'},{s:'sec4',w:'ws4'},{s:'sec5',w:'ws5'}];
+function updateProgress(){
+  const req=[...document.getElementById('idCardForm').querySelectorAll('[required]')];
+  const done=req.filter(f=>f.value.trim()).length, pct=req.length?Math.round(done/req.length*100):0;
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressPct').textContent=pct+'%';
+  document.getElementById('progressText').textContent=
+    pct===100?'🎉 All fields complete — ready to submit!':done+' of '+req.length+' required fields completed';
+  SECSW.forEach(({s,w})=>{
+    const se=document.getElementById(s), we=document.getElementById(w); if(!se||!we)return;
+    const sr=[...se.querySelectorAll('[required]')], sd=sr.filter(f=>f.value.trim()).length;
+    we.classList.remove('active','done');
+    if(sd===sr.length&&sr.length>0) we.classList.add('done');
+    else if(sd>0) we.classList.add('active');
+  });
+}
+document.getElementById('idCardForm').addEventListener('input',updateProgress);
+document.getElementById('idCardForm').addEventListener('change',updateProgress);
 
-    // Demo mode — if URL not set
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-      setTimeout(() => {
-        form.style.display = 'none';
-        document.getElementById('successMsg').style.display = 'block';
-      }, 800);
-      return;
-    }
+/* ── Photo ── */
+function photoDragOver(e){e.preventDefault();document.getElementById('photoZone').classList.add('dragover')}
+function photoDragLeave(){document.getElementById('photoZone').classList.remove('dragover')}
+function photoDrop(e){e.preventDefault();photoDragLeave();const f=e.dataTransfer.files[0];if(f)handlePhotoSelect(f)}
+function handlePhotoSelect(file){
+  if(!file)return;
+  if(!file.type.match(/image\/(jpeg|png)/)){showToast('Only JPEG or PNG allowed.',true);return}
+  if(file.size>2*1024*1024){showToast('Photo must be under 2 MB.',true);return}
+  const r=new FileReader();
+  r.onload=function(ev){
+    const img=new Image();
+    img.onload=function(){
+      const MAX=600; let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>=h){h=Math.round(h*MAX/w);w=MAX}else{w=Math.round(w*MAX/h);h=MAX}}
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const b64=cv.toDataURL('image/jpeg',.72);
+      document.getElementById('photoBase64').value=b64;
+      document.getElementById('photoMime').value='image/jpeg';
+      const pv=document.getElementById('photoPreview');
+      pv.src=b64; pv.style.display='block';
+      document.getElementById('photoIcon').style.display='none';
+      document.getElementById('photoLabel').textContent='✅ '+file.name;
+      document.getElementById('photoLabel').style.color='var(--green)';
+      document.getElementById('photoZone').classList.add('has-photo');
+      const kb=Math.round(b64.length*.75/1024);
+      document.getElementById('photoProgress').style.display='block';
+      setTimeout(()=>document.getElementById('photoProgressFill').style.width=Math.min(100,Math.round(kb/150*100))+'%',50);
+      showToast('📸 Photo ready — ~'+kb+' KB');
+      updateProgress();
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
 
-    try {
-      // Use no-cors to avoid CORS block when opening the HTML file locally.
-      // Google Apps Script receives and processes the data even with no-cors.
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(entries)
-      });
-      // With no-cors we can't read the response — just show success.
-      form.style.display = 'none';
-      document.getElementById('successMsg').style.display = 'block';
-    } catch (err) {
-      btn.disabled = false;
-      btn.textContent = '✅ Submit My Information';
-      alert('Submission failed: ' + err.message + '\nPlease try again or contact HR.');
-    }
+/* ── Ripple ── */
+function createRipple(e){
+  const btn=document.getElementById('submitBtn'), rect=btn.getBoundingClientRect();
+  const r=document.createElement('span'); const sz=Math.max(rect.width,rect.height);
+  r.className='ripple';
+  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px`;
+  btn.appendChild(r); setTimeout(()=>r.remove(),660);
+}
+
+/* ── Toast ── */
+let toastT;
+function showToast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' error':'')+' show';
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ── Confetti ── */
+function confetti(){
+  const cv=document.getElementById('confettiCanvas'), ctx=cv.getContext('2d');
+  cv.width=innerWidth; cv.height=innerHeight;
+  const COLS=['#7c3aed','#2563eb','#06b6d4','#ec4899','#f59e0b','#10b981'];
+  const ps=Array.from({length:150},()=>({
+    x:Math.random()*cv.width, y:-10,
+    r:Math.random()*7+3, speed:Math.random()*3+2,
+    angle:0, tiltSpeed:Math.random()*.1+.04,
+    c:COLS[0|Math.random()*COLS.length]
+  }));
+  let f=0;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.angle+=p.tiltSpeed;p.y+=p.speed;p.x+=Math.sin(p.angle)*2;
+      ctx.beginPath();ctx.lineWidth=p.r/2;ctx.strokeStyle=p.c;
+      ctx.moveTo(p.x+Math.sin(p.angle)*12+p.r/4,p.y);
+      ctx.lineTo(p.x+Math.sin(p.angle)*12,p.y+Math.sin(p.angle)*12+p.r/4);
+      ctx.stroke();
+    });
+    if(++f<200) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+/* ── Submit ── */
+async function handleSubmit(e){
+  e.preventDefault();
+  const form=document.getElementById('idCardForm'), btn=document.getElementById('submitBtn');
+  const payload={};
+  for(let [k,v] of new FormData(form).entries()) payload[k]=v;
+  btn.disabled=true; btn.textContent='⏳  Sending…';
+  const demo=!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('%%');
+  try{
+    if(!demo) await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    confetti();
+    setTimeout(()=>document.getElementById('successScreen').classList.add('show'),350);
+  }catch(err){
+    btn.disabled=false; btn.textContent='✨  Submit My Information';
+    showToast('Submission failed: '+err.message,true);
   }
+}
 </script>
 </body>
 </html>

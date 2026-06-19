@@ -93,6 +93,15 @@ body{
 }
 .hero p{font-size:.9rem;color:var(--muted);position:relative;z-index:1;line-height:1.6}
 
+/* ── Sticky nav wrapper ── */
+.sticky-nav{
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 24px rgba(124,58,237,.12);
+  border-radius:0;
+  /* slight backdrop so content scrolling underneath doesn't bleed through */
+  backdrop-filter:blur(12px);
+}
+
 /* ── Wizard ── */
 .wizard{
   display:flex;align-items:center;
@@ -431,8 +440,9 @@ body{
     <p>Fill in your details carefully — this data will be used to issue your official Clockosoft ID card.</p>
   </div>
 
-  <!-- Step wizard -->
-  <div class="wizard" data-reveal>
+  <!-- Sticky step wizard + progress -->
+  <div class="sticky-nav">
+  <div class="wizard">
     <div class="step active" id="ws1"><div class="step-num">1</div>Personal</div>
     <div class="step-line"></div>
     <div class="step" id="ws2"><div class="step-num">2</div>Contact</div>
@@ -445,7 +455,7 @@ body{
   </div>
 
   <!-- Progress -->
-  <div class="progress-bar" data-reveal>
+  <div class="progress-bar">
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
     </div>
@@ -454,6 +464,8 @@ body{
       <span class="progress-pct" id="progressPct">0%</span>
     </div>
   </div>
+
+  </div><!-- /.sticky-nav -->
 
   <!-- Card -->
   <div class="card">

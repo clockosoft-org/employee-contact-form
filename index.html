@@ -278,6 +278,22 @@ body{
   75%{transform:translateX(-3px)}
 }
 
+/* ── Field status (duplicate check) ── */
+.field-status{
+  display:none;font-size:.72rem;font-weight:600;
+  margin-top:5px;padding-left:4px;
+  align-items:center;gap:5px;
+}
+.field-status.checking{display:flex;color:var(--muted)}
+.field-status.ok{display:flex;color:var(--green)}
+.field-status.dup{display:flex;color:var(--red)}
+.field-status .spin{
+  width:11px;height:11px;border-radius:50%;
+  border:2px solid currentColor;border-top-color:transparent;
+  animation:spin .6s linear infinite;display:inline-block;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* ── Divider ── */
 .divider{
   height:1px;margin:36px 0;
@@ -499,9 +515,10 @@ body{
           <div class="err-msg">Please select a blood group</div>
         </div>
         <div class="fl" data-fl>
-          <input type="text" name="nid" required oninput="checkFl(this)"/>
+          <input type="text" name="nid" required oninput="checkFl(this)" onblur="checkFieldDup(this,'nid')"/>
           <label>NID / Birth Cert No. <span class="req">*</span></label>
           <div class="err-msg">NID / Birth certificate number is required</div>
+          <div class="field-status" id="nidStatus"></div>
         </div>
       </div>
       <div class="fl" data-fl style="margin-top:20px">
@@ -530,9 +547,10 @@ body{
           <label>Alternative Number</label>
         </div>
         <div class="fl" data-fl>
-          <input type="email" name="email" required oninput="checkFl(this)"/>
+          <input type="email" name="email" required oninput="checkFl(this)" onblur="checkFieldDup(this,'email')"/>
           <label>Official Email <span class="req">*</span></label>
           <div class="err-msg">Official email is required</div>
+          <div class="field-status" id="emailStatus"></div>
         </div>
         <div class="fl" data-fl>
           <input type="email" name="personal_email" oninput="checkFl(this)"/>
@@ -812,35 +830,87 @@ function confetti(){
   })();
 }
 
-/* ── Duplicate check via JSONP ── */
+/* ── JSONP duplicate check helper ── */
+let duplicateBlocked = false;   // persists — cleared only when user changes NID/email
+
 function checkDuplicateRemote(email, nid){
   return new Promise(function(resolve){
-    if(isDemo) return resolve({duplicate:false}); // skip in demo mode
+    if(isDemo) return resolve({duplicate:false});
 
     var cbName = '_dupChk_' + Date.now();
     var script = document.createElement('script');
     var done   = false;
 
     window[cbName] = function(data){
-      done = true;
+      if(done) return; done=true;
       delete window[cbName];
-      document.body.removeChild(script);
+      if(document.body.contains(script)) document.body.removeChild(script);
       resolve(data);
     };
 
-    var params = new URLSearchParams({action:'check', email:email, nid:nid, callback:cbName});
+    var params = new URLSearchParams({action:'check', email:email||'', nid:nid||'', callback:cbName});
     script.src = APPS_SCRIPT_URL + '?' + params.toString();
     script.onerror = function(){
       if(!done){ done=true; delete window[cbName]; resolve({duplicate:false}); }
     };
     document.body.appendChild(script);
-
-    // Timeout 6 s — fail open so a slow network doesn't block submission
     setTimeout(function(){
       if(!done){ done=true; delete window[cbName]; resolve({duplicate:false}); }
-    }, 6000);
+    }, 7000);
   });
 }
+
+/* ── Real-time field blur check (NID and Email) ── */
+async function checkFieldDup(el, field){
+  const val = el.value.trim();
+  const statusEl = document.getElementById(field==='nid'?'nidStatus':'emailStatus');
+  const wrap     = el.closest('[data-fl]');
+
+  if(!val || isDemo){
+    if(statusEl) statusEl.className='field-status';
+    return;
+  }
+
+  // Show spinner
+  if(statusEl){ statusEl.className='field-status checking'; statusEl.innerHTML='<span class="spin"></span> Checking…'; }
+
+  const query = field==='nid' ? {email:'', nid:val} : {email:val, nid:''};
+  const result = await checkDuplicateRemote(query.email, query.nid);
+
+  if(result.duplicate){
+    duplicateBlocked = true;
+    if(wrap)     wrap.classList.add('error');
+    if(statusEl){ statusEl.className='field-status dup'; statusEl.innerHTML='⛔ Already registered'; }
+    showToast(
+      '🚫 Your information is already in our system. If you believe this is a mistake, please contact HR directly.',
+      true
+    );
+  } else {
+    // Only clear the block if BOTH fields are clean
+    if(field==='nid')   window._nidOk   = true;
+    if(field==='email') window._emailOk  = true;
+    if(window._nidOk && window._emailOk) duplicateBlocked = false;
+
+    if(wrap)     wrap.classList.remove('error');
+    if(statusEl){ statusEl.className='field-status ok'; statusEl.innerHTML='✅ Available'; }
+  }
+}
+
+// Clear blocked flag + status when user edits a previously flagged field
+document.addEventListener('DOMContentLoaded', function(){
+  ['nid','email'].forEach(function(name){
+    const el = document.querySelector('[name="'+name+'"]');
+    if(!el) return;
+    el.addEventListener('input', function(){
+      duplicateBlocked = false;
+      window._nidOk = false; window._emailOk = false;
+      const statusEl = document.getElementById(name==='nid'?'nidStatus':'emailStatus');
+      if(statusEl) statusEl.className='field-status';
+      const wrap = el.closest('[data-fl]');
+      if(wrap) wrap.classList.remove('error');
+    });
+  });
+});
 
 /* ── Submit ── */
 const isDemo=!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('%%')||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE';
@@ -857,17 +927,25 @@ async function handleSubmit(e){
 
   console.log('[Clockosoft Form] APPS_SCRIPT_URL set:', !isDemo);
 
-  // ── Duplicate check before sending ──
-  const email = (payload.email  || '').trim();
-  const nid   = (payload.nid    || '').trim();
+  // ── Block if duplicate was detected on blur ──
+  if(duplicateBlocked){
+    btn.disabled=false; btn.textContent='✨  Submit My Information';
+    showToast('🚫 Your information is already in our system. Please contact HR if you believe this is a mistake.', true);
+    return;
+  }
+
+  // ── Final safety JSONP check (catches cases where user skipped NID blur) ──
+  btn.textContent='🔍  Verifying…';
+  const email = (payload.email||'').trim();
+  const nid   = (payload.nid  ||'').trim();
   const dup   = await checkDuplicateRemote(email, nid);
   if(dup.duplicate){
+    duplicateBlocked = true;
     btn.disabled=false; btn.textContent='✨  Submit My Information';
-    const field = dup.reason==='email' ? 'official email address' : 'NID / Birth Certificate number';
-    showToast('⚠️ A response with this '+field+' was already submitted. Contact HR if this is an error.', true);
-    // Highlight the duplicate field
-    const dupInput = document.querySelector('[name="'+(dup.reason==='email'?'email':'nid')+'"]');
-    if(dupInput){ const w=dupInput.closest('[data-fl]'); if(w) w.classList.add('error'); dupInput.focus(); }
+    showToast('🚫 Your information is already in our system. Please contact HR if you believe this is a mistake.', true);
+    const dupField = dup.reason==='email' ? 'email' : 'nid';
+    const dupInput = document.querySelector('[name="'+dupField+'"]');
+    if(dupInput){ const w=dupInput.closest('[data-fl]'); if(w) w.classList.add('error'); dupInput.scrollIntoView({behavior:'smooth',block:'center'}); }
     return;
   }
 

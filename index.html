@@ -240,6 +240,35 @@ body{
 .fl input.gold-focus:focus ~ label{color:var(--gold)}
 .req{color:var(--pink);margin-left:2px}
 
+/* ── Validation error state ── */
+.fl.error input,.fl.error select,.fl.error textarea{
+  border-color:var(--red)!important;
+  background:#fff5f5!important;
+  box-shadow:0 0 0 4px rgba(239,68,68,.1)!important;
+  animation:shake .4s ease;
+}
+.fl.error label{color:var(--red)!important}
+.fl .err-msg{
+  display:none;font-size:.72rem;color:var(--red);
+  font-weight:600;margin-top:5px;padding-left:4px;
+}
+.fl.error .err-msg{display:block}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+@keyframes btnShake{
+  0%,100%{transform:translateX(0)}
+  15%{transform:translateX(-8px)}
+  30%{transform:translateX(8px)}
+  45%{transform:translateX(-6px)}
+  60%{transform:translateX(6px)}
+  75%{transform:translateX(-3px)}
+}
+
 /* ── Divider ── */
 .divider{
   height:1px;margin:36px 0;
@@ -264,7 +293,7 @@ body{
 .photo-drop:hover{border-color:rgba(124,58,237,.5);background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(6,182,212,.04));box-shadow:0 8px 32px rgba(124,58,237,.12)}
 .photo-drop.dragover{border-color:var(--c1);background:rgba(124,58,237,.07);box-shadow:0 0 0 4px rgba(124,58,237,.12)}
 .photo-drop.has-photo{border-style:solid;border-color:var(--green);background:linear-gradient(135deg,rgba(5,150,105,.05),rgba(16,185,129,.03))}
-.photo-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:10}
 .photo-preview{
   width:100px;height:120px;object-fit:cover;display:none;
   border-radius:12px;margin:0 auto 14px;
@@ -441,10 +470,12 @@ body{
         <div class="fl" data-fl>
           <input type="text" name="full_name" required autocomplete="name" oninput="checkFl(this)"/>
           <label>Full Name <span class="req">*</span></label>
+          <div class="err-msg">Full name is required</div>
         </div>
         <div class="fl" data-fl>
           <input type="date" name="dob" required onchange="checkFl(this)"/>
           <label>Date of Birth <span class="req">*</span></label>
+          <div class="err-msg">Date of birth is required</div>
         </div>
         <div class="fl" data-fl>
           <select name="blood_group" required onchange="checkFl(this)">
@@ -453,15 +484,18 @@ body{
             <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
           </select>
           <label>Blood Group <span class="req">*</span></label>
+          <div class="err-msg">Please select a blood group</div>
         </div>
         <div class="fl" data-fl>
           <input type="text" name="nid" required oninput="checkFl(this)"/>
           <label>NID / Birth Cert No. <span class="req">*</span></label>
+          <div class="err-msg">NID / Birth certificate number is required</div>
         </div>
       </div>
       <div class="fl" data-fl style="margin-top:20px">
         <textarea name="address" required rows="3" oninput="checkFl(this)"></textarea>
         <label>Permanent Address <span class="req">*</span></label>
+        <div class="err-msg">Permanent address is required</div>
       </div>
     </div>
 
@@ -477,6 +511,7 @@ body{
         <div class="fl" data-fl>
           <input type="tel" name="contact_primary" class="gold-focus" required oninput="checkFl(this)"/>
           <label>Primary Number ⭐ <span class="req">*</span></label>
+          <div class="err-msg">Primary contact number is required</div>
         </div>
         <div class="fl" data-fl>
           <input type="tel" name="contact_alt" oninput="checkFl(this)"/>
@@ -485,6 +520,7 @@ body{
         <div class="fl" data-fl>
           <input type="email" name="email" required oninput="checkFl(this)"/>
           <label>Official Email <span class="req">*</span></label>
+          <div class="err-msg">Official email is required</div>
         </div>
         <div class="fl" data-fl>
           <input type="email" name="personal_email" oninput="checkFl(this)"/>
@@ -505,14 +541,17 @@ body{
         <div class="fl" data-fl>
           <input type="text" name="emergency_name" required oninput="checkFl(this)"/>
           <label>Full Name <span class="req">*</span></label>
+          <div class="err-msg">Emergency contact name is required</div>
         </div>
         <div class="fl" data-fl>
           <input type="text" name="emergency_relation" required oninput="checkFl(this)"/>
           <label>Relationship <span class="req">*</span></label>
+          <div class="err-msg">Relationship is required</div>
         </div>
         <div class="fl" data-fl>
           <input type="tel" name="emergency_contact" required oninput="checkFl(this)"/>
           <label>Contact Number <span class="req">*</span></label>
+          <div class="err-msg">Emergency contact number is required</div>
         </div>
       </div>
     </div>
@@ -529,6 +568,7 @@ body{
         <div class="fl" data-fl>
           <input type="text" name="designation" required oninput="checkFl(this)"/>
           <label>Designation <span class="req">*</span></label>
+          <div class="err-msg">Designation is required</div>
         </div>
         <div class="fl" data-fl>
           <select name="department" required onchange="checkFl(this)">
@@ -538,10 +578,12 @@ body{
             <option>HR &amp; Admin</option><option>Finance</option><option>Other</option>
           </select>
           <label>Department <span class="req">*</span></label>
+          <div class="err-msg">Please select a department</div>
         </div>
         <div class="fl" data-fl>
           <input type="date" name="joining_date" required onchange="checkFl(this)"/>
           <label>Date of Joining <span class="req">*</span></label>
+          <div class="err-msg">Joining date is required</div>
         </div>
       </div>
     </div>
@@ -561,9 +603,6 @@ body{
         <div class="photo-icon-wrap" id="photoIcon">📸</div>
         <div class="photo-title" id="photoLabel">Click or drag your photo here</div>
         <div class="photo-sub">Auto-compressed · passport-size preferred</div>
-        <div class="photo-progress" id="photoProgress">
-          <div class="photo-progress-fill" id="photoProgressFill"></div>
-        </div>
       </div>
       <input type="hidden" id="photoBase64" name="photo_base64"/>
       <input type="hidden" id="photoMime"   name="photo_mime"/>
@@ -674,15 +713,49 @@ function handlePhotoSelect(file){
       document.getElementById('photoLabel').textContent='✅ '+file.name;
       document.getElementById('photoLabel').style.color='var(--green)';
       document.getElementById('photoZone').classList.add('has-photo');
-      const kb=Math.round(b64.length*.75/1024);
-      document.getElementById('photoProgress').style.display='block';
-      setTimeout(()=>document.getElementById('photoProgressFill').style.width=Math.min(100,Math.round(kb/150*100))+'%',50);
-      showToast('📸 Photo ready — ~'+kb+' KB');
+      showToast('📸 Photo ready — ~'+Math.round(b64.length*.75/1024)+' KB');
       updateProgress();
     };
     img.src=ev.target.result;
   };
   r.readAsDataURL(file);
+}
+
+/* ── Validation ── */
+function validateForm(){
+  const form=document.getElementById('idCardForm');
+  const fields=form.querySelectorAll('[required]');
+  let firstInvalid=null;
+  fields.forEach(f=>{
+    const wrap=f.closest('[data-fl]');
+    if(!f.value.trim()){
+      if(wrap) wrap.classList.add('error');
+      if(!firstInvalid) firstInvalid=f;
+    } else {
+      if(wrap) wrap.classList.remove('error');
+    }
+  });
+  // Clear error on fix
+  fields.forEach(f=>{
+    f.addEventListener('input',function(){
+      const w=this.closest('[data-fl]');
+      if(this.value.trim()&&w) w.classList.remove('error');
+    },{once:false});
+    f.addEventListener('change',function(){
+      const w=this.closest('[data-fl]');
+      if(this.value.trim()&&w) w.classList.remove('error');
+    },{once:false});
+  });
+  if(firstInvalid){
+    firstInvalid.scrollIntoView({behavior:'smooth',block:'center'});
+    firstInvalid.focus();
+    const btn=document.getElementById('submitBtn');
+    btn.style.animation='btnShake .4s ease';
+    setTimeout(()=>btn.style.animation='btnShift 4s linear infinite',450);
+    showToast('⚠️ Please fill in all required fields.',true);
+    return false;
+  }
+  return true;
 }
 
 /* ── Ripple ── */
@@ -730,17 +803,40 @@ function confetti(){
 /* ── Submit ── */
 async function handleSubmit(e){
   e.preventDefault();
+  if(!validateForm()) return;           // ← block if any required field is empty
+
   const form=document.getElementById('idCardForm'), btn=document.getElementById('submitBtn');
   const payload={};
   for(let [k,v] of new FormData(form).entries()) payload[k]=v;
+
   btn.disabled=true; btn.textContent='⏳  Sending…';
-  const demo=!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('%%');
+
+  const isDemo=!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('%%')||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE';
+
+  // Debug: log URL status to browser console (open DevTools → Console to check)
+  console.log('[Clockosoft Form] APPS_SCRIPT_URL set:', !isDemo);
+  if(!isDemo) console.log('[Clockosoft Form] Posting to URL length:', APPS_SCRIPT_URL.length);
+
   try{
-    if(!demo) await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    if(!isDemo){
+      // no-cors sends the request without a preflight — Apps Script receives the body.
+      // We cannot read the response in no-cors mode, so success is assumed after fetch resolves.
+      await fetch(APPS_SCRIPT_URL,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify(payload)
+      });
+      console.log('[Clockosoft Form] Fetch resolved — data sent to Apps Script.');
+    } else {
+      console.warn('[Clockosoft Form] Running in demo mode — no data sent. Deploy via GitHub Actions to inject the real URL.');
+      await new Promise(r=>setTimeout(r,800));
+    }
     confetti();
     setTimeout(()=>document.getElementById('successScreen').classList.add('show'),350);
   }catch(err){
     btn.disabled=false; btn.textContent='✨  Submit My Information';
+    console.error('[Clockosoft Form] Fetch error:', err);
     showToast('Submission failed: '+err.message,true);
   }
 }
